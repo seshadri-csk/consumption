@@ -1,0 +1,20 @@
+{
+    "tables": {
+        "sales": {
+            "columns": {
+                "product_id": {"type": "INTEGER", "aggregations": ["COUNT"]},
+                "product_name": {"type": "VARCHAR", "aggregations": []},
+                "total_sales": {"type": "DECIMAL", "aggregations": ["SUM", "AVG", "MIN", "MAX"]},
+                "sales_date": {"type": "DATE", "aggregations": []},
+                "region_id": {"type": "INTEGER", "aggregations": []}
+            }
+        },
+        "regions": {
+            "columns": {
+                "id": {"type": "INTEGER", "aggregations": []},
+                "region": {"type": "VARCHAR", "aggregations": []}
+            }
+        }
+    },
+    "defaultQuery": "SELECT * FROM sales LIMIT 10"
+}
