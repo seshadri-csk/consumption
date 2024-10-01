@@ -1,0 +1,42 @@
+{
+    "tableName": "sales",
+    "columns": [
+        {"name": "product_name", "aggregation": null},
+        {"name": "total_sales", "aggregation": "SUM"},
+        {"name": "sales_date", "aggregation": null},
+        {"name": "region", "aggregation": null}
+    ],
+    "joins": [
+        {
+            "joinType": "INNER",
+            "tableName": "regions",
+            "on": {
+                "leftColumn": "sales.region_id",
+                "rightColumn": "regions.id"
+            }
+        }
+    ],
+    "filters": {
+        "AND": [
+            {
+                "dateRange": {
+                    "column": "sales_date",
+                    "startDate": "2024-01-01",
+                    "endDate": "2024-12-31"
+                }
+            },
+            {
+                "OR": [
+                    {"productCategory": "Electronics"},
+                    {"region": "North America"}
+                ]
+            }
+        ]
+    },
+    "groupBy": ["product_name", "region"],
+    "orderBy": {
+        "column": "total_sales",
+        "direction": "DESC"
+    },
+    "scheduledExpression": "rate(1 day)"
+}
