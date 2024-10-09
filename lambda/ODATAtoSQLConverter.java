@@ -37,7 +37,7 @@ public class ODataToSQLConverter {
                 default: throw new UnsupportedOperationException("Unsupported operator: " + operator);
             }
         } else if (expression instanceof MethodExpression) {
-            // Method expressions (endswith, etc.)
+            // Method expressions (startswith, endswith, contains, etc.)
             MethodExpression methodExpression = (MethodExpression) expression;
             String param1 = traverseExpression(methodExpression.getParameters().get(0));
             String param2 = traverseExpression(methodExpression.getParameters().get(1));
@@ -46,6 +46,10 @@ public class ODataToSQLConverter {
             switch (methodExpression.getMethod()) {
                 case ENDSWITH:
                     return param1 + " LIKE '%" + param2 + "'";
+                case STARTSWITH:
+                    return param1 + " LIKE '" + param2 + "%'";
+                case CONTAINS:
+                    return param1 + " LIKE '%" + param2 + "%'";
                 default:
                     throw new UnsupportedOperationException("Unsupported method: " + methodExpression.getMethod());
             }
@@ -60,15 +64,30 @@ public class ODataToSQLConverter {
         return "";
     }
 
+    // Method to parse and convert OData $orderby to SQL
+    public static String convertODataOrderByToSQL(String odataOrderBy) {
+        // Validate the $orderby clause first
+        if (!ODataInputValidator.validateODataOrderBy(odataOrderBy)) {
+            throw new IllegalArgumentException("Invalid $orderby clause");
+        }
+
+        // Convert to SQL ORDER BY format
+        return "ORDER BY " + odataOrderBy.replace(" asc", " ASC").replace(" desc", " DESC");
+    }
+
     public static void main(String[] args) {
         try {
             // OData filter string
-            String odataFilter = "Name in ('Milk', 'Cheese') AND style has Sales.Pattern'Yellow' "
-                               + "AND ship eq 'Milk' or Price lt 2.55 AND product not endswith(Name,'ilk')";
+            String odataFilter = "Name in ('Milk', 'Cheese') AND Price lt 2.55 OR product not endswith(Name,'ilk')";
+            String odataOrderBy = "Price asc, Name desc";
 
             // Convert OData filter to SQL WHERE clause
             String sqlWhereClause = convertODataFilterToSQL(odataFilter);
             System.out.println("SQL WHERE Clause: " + sqlWhereClause);
+
+            // Convert OData $orderby to SQL ORDER BY clause
+            String sqlOrderByClause = convertODataOrderByToSQL(odataOrderBy);
+            System.out.println("SQL ORDER BY Clause: " + sqlOrderByClause);
 
         } catch (Exception e) {
             e.printStackTrace();
