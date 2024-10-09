@@ -1,0 +1,133 @@
+{
+  "Comment": "State machine to handle query generation and execution",
+  "StartAt": "QueryGenerator",
+  "TimeoutSeconds": 300,
+  "States": {
+    "QueryGenerator": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:QueryGeneratorLambda",
+      "ResultPath": "$.queryGenerationResult",
+      "Parameters": {
+        "report_name.$": "$.report_name",        // From input
+        "parameters.$": "$.parameters"          // Additional params if needed
+      },
+      "Next": "QueryExecution",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "QueryGenerationFailure"
+        }
+      ]
+    },
+    
+    "QueryExecution": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:QueryExecutorLambda",
+      "ResultPath": "$.executionResult",
+      "Parameters": {
+        "request_id.$": "$.queryGenerationResult.request_id" // Pass request_id from QueryGenerator
+      },
+      "Next": "CheckExecutionStatus",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "ExecutionFailed"
+        }
+      ]
+    },
+    
+    "CheckExecutionStatus": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.executionResult.status",
+          "StringEquals": "RUNNING",
+          "Next": "WaitState"
+        },
+        {
+          "Variable": "$.executionResult.status",
+          "StringEquals": "COMPLETED",
+          "Next": "QueryResultSuccess"
+        },
+        {
+          "Variable": "$.executionResult.status",
+          "StringEquals": "ERROR",
+          "Next": "QueryExecutionError"
+        }
+      ],
+      "Default": "ExecutionFailed"
+    },
+    
+    "WaitState": {
+      "Type": "Wait",
+      "Seconds": 2,
+      "Next": "QueryExecution"
+    },
+    
+    "QueryResultSuccess": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:QueryResultPrepLambda", // Lambda to prep the query result for further processing
+      "ResultPath": "$.queryResult",
+      "Next": "UpdateSuccessInDynamoDB"
+    },
+    
+    "UpdateSuccessInDynamoDB": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:DynamoUpdateSuccessLambda", // Lambda to update status
+      "Parameters": {
+        "request_id.$": "$.queryGenerationResult.request_id",
+        "status": "COMPLETED",
+        "s3_result_path.$": "$.queryResult.s3_path"
+      },
+      "Next": "NotifySuccess"
+    },
+    
+    "NotifySuccess": {
+      "Type": "Task",
+      "Resource": "arn:aws:sns:REGION:ACCOUNT_ID:RequestNotificationTopic",
+      "Parameters": {
+        "Message.$": "Query completed successfully with request_id: $.queryGenerationResult.request_id"
+      },
+      "End": true
+    },
+    
+    "QueryExecutionError": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:DynamoUpdateErrorLambda", // Lambda to update error status in DynamoDB
+      "Parameters": {
+        "request_id.$": "$.queryGenerationResult.request_id",
+        "status": "ERROR"
+      },
+      "Next": "NotifyFailure"
+    },
+    
+    "NotifyFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:sns:REGION:ACCOUNT_ID:RequestNotificationTopic",
+      "Parameters": {
+        "Message.$": "Query execution failed with request_id: $.queryGenerationResult.request_id"
+      },
+      "End": true
+    },
+    
+    "ExecutionFailed": {
+      "Type": "Fail",
+      "Error": "QueryExecutionFailed",
+      "Cause": "Query execution failed due to some error"
+    },
+    
+    "QueryGenerationFailure": {
+      "Type": "Fail",
+      "Error": "QueryGenerationFailed",
+      "Cause": "Query generation failed due to some error"
+    }
+  }
+}
