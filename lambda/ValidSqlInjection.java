@@ -24,6 +24,12 @@ public class ODataInputValidator {
         VALID_OPERATORS.add("has");
     }
 
+    // Updated regular expression to allow valid SQL functions like to_date() with single quotes
+private static final Pattern SQL_INJECTION_PATTERN1 = Pattern.compile(
+    "(\\b(select|insert|delete|update|drop|union|--|\\bor\\b|\\band\\b|\\/*|\\*/|';--|';|'\\s*;|'.*\\bOR\\b|'.*\\bAND\\b))",
+    Pattern.CASE_INSENSITIVE
+);
+
     // Regular expression to detect common SQL injection patterns
     private static final Pattern SQL_INJECTION_PATTERN = Pattern.compile(
         "([';--]|\\/\\*|\\*\\/|\\bor\\b|\\band\\b|\\bselect\\b|\\binsert\\b|\\bdelete\\b|\\bupdate\\b|\\bdrop\\b|\\bunion\\b|\\b--\\b)", 
