@@ -2,9 +2,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SQLInjectionValidator {
-    // Regular expression to detect SQL injection patterns
+    // Corrected regular expression to detect SQL injection patterns
     private static final String SQL_INJECTION_PATTERN =
-            ".*(\\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|OR|AND|LIKE|CAST|CONVERT|EXEC|EXECUTE|FROM|HAVING|JOIN|NULL|TRUE|FALSE|IS|IN)\\b|--|;|'|\"|\\*|\\(\\).*";
+            ".*(\\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|OR|AND|LIKE|CAST|CONVERT|EXEC|EXECUTE|FROM|HAVING|JOIN|NULL|TRUE|FALSE|IS|IN)\\b|--|;|'|\"|\\*|\\(.*\\)).*";
 
     private static final Pattern pattern = Pattern.compile(SQL_INJECTION_PATTERN, Pattern.CASE_INSENSITIVE);
 
