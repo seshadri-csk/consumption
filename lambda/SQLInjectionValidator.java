@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 public class SQLInjectionValidator {
     // Updated regular expression to detect SQL injection patterns and allow valid SQL functions
     private static final String SQL_INJECTION_PATTERN =
-            ".*(\\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|OR|AND|LIKE|CAST|CONVERT|EXEC|EXECUTE|FROM|HAVING|JOIN|NULL|TRUE|FALSE|IS|IN)\\b|--|;|'(?!\\w+\\()|\\w+\\s*\\(.*\\)).*";
+            ".*(\\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|OR|AND|LIKE|CAST|CONVERT|EXEC|EXECUTE|FROM|HAVING|JOIN|NULL|TRUE|FALSE|IS|IN)\\b|--|;|'(?!\\w+\\s*\\()|\\w+\\s*\\([^)]*'.*'[^)]*\\)).*";
 
     private static final Pattern pattern = Pattern.compile(SQL_INJECTION_PATTERN, Pattern.CASE_INSENSITIVE);
 
