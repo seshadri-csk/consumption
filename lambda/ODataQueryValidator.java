@@ -34,7 +34,9 @@ public class ODataQueryValidator {
 
         // Basic structure validation using a more relaxed regex
         // Allow alphanumeric characters, spaces, single quotes, and common OData operators
-        if (!query.matches("[\\w\\s=><'(),.]+")) {
+        // Updated regex to allow valid OData syntax, including function calls, slashes, and spaces
+        String validCharactersRegex = "[\\w\\s=><'(),./-]+";
+        if (!query.matches(validCharactersRegex)) {
             System.out.println("Invalid characters detected in OData query.");
             return false;
         }
