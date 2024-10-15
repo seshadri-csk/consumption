@@ -2,9 +2,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SQLInjectionValidator {
-    // Corrected regular expression to detect SQL injection patterns
+    // Updated regular expression to detect SQL injection patterns and allow valid SQL functions
     private static final String SQL_INJECTION_PATTERN =
-            ".*(\\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|OR|AND|LIKE|CAST|CONVERT|EXEC|EXECUTE|FROM|HAVING|JOIN|NULL|TRUE|FALSE|IS|IN)\\b|--|;|\\b\\w*\\s*=\\s*'.*?'|[^=]\\s*'.*').*";
+            ".*(\\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|OR|AND|LIKE|CAST|CONVERT|EXEC|EXECUTE|FROM|HAVING|JOIN|NULL|TRUE|FALSE|IS|IN)\\b|--|;|[^=]\\s*'.*'|(?<!to_date)\\(.*\\)).*";
 
     private static final Pattern pattern = Pattern.compile(SQL_INJECTION_PATTERN, Pattern.CASE_INSENSITIVE);
 
@@ -30,7 +30,7 @@ public class SQLInjectionValidator {
     }
 
     public static void main(String[] args) {
-        // Valid OData query
+        // Valid OData query with a to_date function
         String validOdataQuery = "runmode.sql eq 'production' and time_stamap ge to_date('01/10/2023','MM/DD/YY')";
         validateODataQuery(validOdataQuery);
 
