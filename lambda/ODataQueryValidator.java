@@ -3,17 +3,37 @@ public class ODataQueryValidator {
     // Basic method to validate OData query syntax
     public static boolean isValidODataQuery(String query) {
         // Regex patterns for SQL injection
-        String[] forbiddenPatterns = { "--", ";", "\\*", "DROP", "INSERT", "DELETE", "'", "\"", "xp_", "1=1", "OR", "AND", "UNION" };
+        String[] forbiddenPatterns = { 
+            "--", 
+            ";", 
+            "\\*", 
+            "DROP", 
+            "INSERT", 
+            "DELETE", 
+            "1=1", 
+            "OR ", 
+            "AND ", 
+            "UNION ", 
+            "xp_", 
+            "/*", 
+            "*/", 
+            "CHAR(", 
+            "EXEC", 
+            "CAST(", 
+            "CONVERT(" 
+        };
 
-        // Check for forbidden patterns
+        // Check for forbidden patterns (excluding valid OData single quotes)
         for (String pattern : forbiddenPatterns) {
-            if (query.toUpperCase().contains(pattern.toUpperCase())) {
+            if (query.toUpperCase().contains(pattern.toUpperCase()) 
+                && !pattern.equals("'")) {  // Allow single quotes for OData
                 System.out.println("Potential SQL injection detected with pattern: " + pattern);
                 return false;
             }
         }
 
-        // Basic structure validation (simple example)
+        // Basic structure validation using a more relaxed regex
+        // Allow alphanumeric characters, spaces, single quotes, and common OData operators
         if (!query.matches("[\\w\\s=><'(),.]+")) {
             System.out.println("Invalid characters detected in OData query.");
             return false;
