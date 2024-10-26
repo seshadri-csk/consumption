@@ -118,8 +118,36 @@ public class OptimizedMultiChunkUploader {
     // Extracts the schema from the chunk response
     private List<Map<String, Object>> extractSchema(JsonNode chunkResponse) {
         // Extract schema from the manifest
-        // Implement schema extraction logic from JSON
-        // ...
+        JsonNode schemaNode = rootNode.path("manifest").path("schema");
+
+       List<Map<String, Object>> columnsList = new ArrayList<>();
+
+        // Get the columns array from the schemaNode
+        JsonNode columnsArray = schemaNode.get("columns");
+
+        // Iterate through the columns array
+        for (JsonNode columnNode : columnsArray) {
+            Map<String, Object> columnMap = new HashMap<>();
+
+            // Extract column properties and put them into the map
+            columnMap.put("name", columnNode.get("name").asText());
+            columnMap.put("position", columnNode.get("position").asInt());
+            columnMap.put("type_name", columnNode.get("type_name").asText());
+            columnMap.put("type_text", columnNode.get("type_text").asText());
+
+            // Optional fields like type_precision and type_scale
+            if (columnNode.has("type_precision")) {
+                columnMap.put("type_precision", columnNode.get("type_precision").asInt());
+            }
+            if (columnNode.has("type_scale")) {
+                columnMap.put("type_scale", columnNode.get("type_scale").asInt());
+            }
+
+            columnsList.add(columnMap);
+        }
+
+        return columnsList;
+
         return null;
     }
 
@@ -127,7 +155,21 @@ public class OptimizedMultiChunkUploader {
     private List<List<Object>> extractDataArray(JsonNode chunkResponse) {
         // Extract data array from the result node
         // Implement data array extraction logic from JSON
-        // ...
-        return null;
+         // Get data_array node
+        JsonNode dataArrayNode = rootNode.path("result").path("data_array");
+       
+        List<List<Object>> dataArray = new ArrayList<>();
+
+        // Iterate through rows in the data_array
+        for (JsonNode rowNode : dataArrayNode) {
+            List<Object> row = new ArrayList<>();
+            // Add each value in the row to the list
+            for (JsonNode valueNode : rowNode) {
+                row.add(valueNode.asText());  // Convert to text, you can modify based on the type
+            }
+            dataArray.add(row);
+        }
+        
+        return dataArray;
     }
 }
