@@ -1,0 +1,47 @@
+{
+  "StartAt": "ChoosePath",
+  "States": {
+    "ChoosePath": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.action",
+          "StringEquals": "executequery",
+          "Next": "ExecuteQueryLambda"
+        },
+        {
+          "Variable": "$.action",
+          "StringEquals": "reportstatus",
+          "Next": "ReportStatusLambda"
+        }
+      ],
+      "Default": "FailState"
+    },
+    "ExecuteQueryLambda": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:region:account-id:function:your-lambda-function",
+      "InputPath": "$",
+      "Parameters": {
+        "path": "/executequery",
+        "inputParam1": "$.inputParam1",
+        "inputParam2": "$.inputParam2"
+      },
+      "End": true
+    },
+    "ReportStatusLambda": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:region:account-id:function:your-lambda-function",
+      "InputPath": "$",
+      "Parameters": {
+        "path": "/reportstatus",
+        "statusId": "$.statusId"
+      },
+      "End": true
+    },
+    "FailState": {
+      "Type": "Fail",
+      "Error": "InvalidInput",
+      "Cause": "Invalid action provided"
+    }
+  }
+}
